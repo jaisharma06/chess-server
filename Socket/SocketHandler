@@ -1,0 +1,37 @@
+const http = require('http')
+const { Server } = require('socket.io')
+
+const port = process.env.PORT || 8080
+
+class SocketHandler{
+    // use 8080 as the default port number, process.env.PORT is
+    //useful if you deploy to Heroku
+    
+    constructor(app) {
+        this.server = http.createServer(app)
+        this.io = new Server(this.server)
+        this.server.listen(port, this.onServerStart)
+
+        this.io.on('connection', this.onConnection)
+        this.io.on('disconnection', this.onDisconnection)
+        this.io.on('error', this.onError)
+    }
+
+    onServerStart = function () {
+        console.log("server started on port:", port)
+    }
+
+    onConnection = function (socket) {
+        console.log("Client connected")
+    }
+
+    onDisconnection = function (socket) {
+        console.log("client disconnected")
+    }
+
+    onError = function (socket) {
+        console.log("Error")
+    }
+}
+
+module.exports = SocketHandler

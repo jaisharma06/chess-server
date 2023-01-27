@@ -1,24 +1,32 @@
-import express from "express";
-import { Server } from "socket.io";
+const express = require("express")
+const cors = require('cors')
+const app = express()
+var bodyParser = require('body-parser')
+const mongoose = require('mongoose')
+const Player = require('./Schemas/player')
+const SocketHandler = require('./Socket/SocketHandler')
 
-const app = express();
+const dbURL = 'mongodb://localhost:27017/custom-chess'
 
-app.get("/", (req, res) => {
-  res.send("Welcome to custom chess!");
-});
+app.use(cors())
+app.use(bodyParser.urlencoded({extended: true})) 
+app.use(bodyParser.json()) 
 
-const httpServer = app.listen(3000, () => console.log("Server running"));
-const io = new Server(httpServer);
+mongoose.set('strictQuery', false)
+mongoose.connect(dbURL)
+const db = mongoose.connection
 
-const SECOND = 1000;
+db.on('error', console.error.bind(console, 'connection error: '))
+db.once('open', () => {
+  console.log('Connection Successful')
+})
 
-io.timeout(SECOND * 7);
-io.connectTimeout(SECOND * 7);
+//APIS
+app.get('/login', Player.getPlayer)
 
-io.on("connection", (socket) => {
-  console.log("Client connected");
-});
+app.post('/register', Player.addPlayer)
+//APIS END
 
-io.on("disconnection", (socket) => {
-  console.log("Client disconnected");
-});
+//SOCKET
+var socketHandler = new SocketHandler(app)
+//SOCKET END
